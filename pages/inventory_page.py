@@ -37,7 +37,36 @@ class InventoryPage:
         return data
 
     def logout(self):
-        self.driver.find_element(*self.menu_button).click()
-        WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.logout_link)
-        ).click()
+        from selenium.common.exceptions import TimeoutException
+        logout_xpath = "/html/body/div/div/div/div[1]/div[1]/div[1]/div/div[2]/div[1]/nav/a[3]"
+
+        # Click the menu button using JavaScript
+        try:
+            menu_btn = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(self.menu_button)
+            )
+            self.driver.execute_script("arguments[0].click();", menu_btn)
+        except TimeoutException:
+            btn = self.driver.find_element(*self.menu_button)
+            self.driver.execute_script("arguments[0].click();", btn)
+
+        # Wait for logout to appear using your full XPath
+        try:
+            logout_btn = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, logout_xpath))
+            )
+        except TimeoutException:
+            # Retry by refreshing and clicking menu again
+            self.driver.refresh()
+            menu_btn = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(self.menu_button)
+            )
+            self.driver.execute_script("arguments[0].click();", menu_btn)
+
+            logout_btn = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, logout_xpath))
+            )
+
+        # Click logout using JavaScript
+        self.driver.execute_script("arguments[0].click();", logout_btn)
+
